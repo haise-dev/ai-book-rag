@@ -1,4 +1,3 @@
-```markdown
 # AI-Powered Book Recommendation & Retrieval System
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
@@ -15,6 +14,8 @@
 > **Context-Aware RAG System with Hybrid Search & Local Inference**
 >
 > A production-ready implementation of a Retrieval-Augmented Generation (RAG) pipeline designed for low-latency, privacy-focused book recommendations. It leverages **Hybrid Search** (Dense + Sparse) and **Agentic Workflows** to deliver precise results without relying on external APIs.
+
+> 📖 **Read the Full Thesis:** For a deep dive into the theoretical background, architectural decisions, and detailed performance benchmarks, please refer to the [Project Thesis (PDF)](docs/AI_Book_Recommendation_Thesis.pdf).
 
 ---
 
@@ -85,6 +86,7 @@ ai-book-rag/
 ├── database/             # Data Management
 │   ├── seed.py           # Data Seeding Script
 │   └── setup.py          # Schema Migration
+├── docs/                 # 📄 Project Documentation & Thesis
 ├── docker/               # Docker configurations
 ├── workflows/            # N8N Agent Logic (JSON)
 ├── docker-compose.yml    # Infrastructure Definition
@@ -155,7 +157,3 @@ docker-compose exec book-web python database/seed.py
 **Author:** Pham Hoang Duong
 
 **License:** MIT
-
-```
-
-```
