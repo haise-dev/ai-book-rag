@@ -57,7 +57,7 @@ While the architecture provides the structure, the core intelligence lies in the
 
 Extensive benchmarking was conducted to determine the optimal Local LLM for this specific RAG task. The trade-off analysis focuses on **Latency vs. Generation Quality**.
 
-**Test Environment:** Docker Container, RTX 3080 Laptop (16GB VRAMR.
+**Test Environment:** Docker Container, RTX 3080 Laptop (16GB VRAM).
 
 | Model | Success Rate | Avg Latency (ms) | P95 Latency (ms) | Verdict |
 | :--- | :---: | :---: | :---: | :--- |
