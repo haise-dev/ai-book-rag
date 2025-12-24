@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title }}{% endblock %} - AI Book Library</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <a href="/" class="text-2xl font-bold text-blue-600">📚 AI Book Library</a>
+                
+                <div class="flex space-x-6">
+                    <a href="/" class="hover:text-blue-600 {% if request.url.path == '/' %}text-blue-600 font-semibold{% endif %}">Home</a>
+                    <a href="/books" class="hover:text-blue-600 {% if request.url.path == '/books' %}text-blue-600 font-semibold{% endif %}">All Books</a>
+                    <a href="/saved" class="hover:text-blue-600 {% if request.url.path == '/saved' %}text-blue-600 font-semibold{% endif %}">My Saved</a>
+                    <a href="/add-book" class="hover:text-blue-600 {% if request.url.path == '/add-book' %}text-blue-600 font-semibold{% endif %}">Add Book</a>
+                    <a href="/genres" class="hover:text-blue-600 {% if request.url.path == '/genres' %}text-blue-600 font-semibold{% endif %}">📖 Browse Genres</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Chat Widget (Hidden by default) -->
+    <div id="chat-widget" class="fixed bottom-4 right-4 w-96 h-96 bg-white rounded-lg shadow-xl hidden flex flex-col">
+        <div class="bg-blue-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+            <h3 class="font-semibold">🤖 AI Book Assistant</h3>
+            <button id="close-chat" class="text-white hover:text-gray-200">✕</button>
+        </div>
+        
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto">
+            <div class="text-gray-500 text-center">Ask me about books!</div>
+        </div>
+        
+        <div class="p-4 border-t">
+            <div class="flex gap-2">
+                <input 
+                    type="text" 
+                    id="chat-input" 
+                    class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Type your message..."
+                >
+                <button id="chat-send" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/chat.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

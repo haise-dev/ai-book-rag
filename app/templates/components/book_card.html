@@ -1,0 +1,52 @@
+<!-- Book Card Component -->
+<div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+    <a href="/book/{{ book.id }}" class="block">
+        <!-- Book Cover -->
+        <div class="bg-gray-200 h-48 flex items-center justify-center overflow-hidden">
+            {% if book.cover_image_url %}
+                <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" class="h-full w-full object-cover">
+            {% else %}
+                <span class="text-4xl">📚</span>
+            {% endif %}
+        </div>
+        
+        <!-- Book Info -->
+        <div class="p-4">
+            <h3 class="font-semibold text-lg mb-1 line-clamp-1">{{ book.title }}</h3>
+            <p class="text-gray-600 text-sm mb-2">by {{ book.author }}</p>
+            
+            <!-- Rating -->
+            <div class="flex items-center mb-2">
+                <span class="text-yellow-500">
+                    {% if book.rating %}
+                        {% for i in range(book.rating|int) %}⭐{% endfor %}
+                        <span class="text-gray-500 text-sm ml-1">({{ book.rating }})</span>
+                    {% else %}
+                        <span class="text-gray-400 text-sm">No rating</span>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <!-- Genres -->
+            {% if book.genres %}
+            <div class="flex flex-wrap gap-1 mb-2">
+                {% for genre in book.genres[:2] %}
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{{ genre.name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </a>
+    
+    <!-- Save Button (Outside link for better UX) -->
+    <div class="px-4 pb-4">
+        <button 
+            class="w-full py-2 rounded-lg font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+            onclick="toggleSaveBook({{ book.id }}, event)"
+            data-book-id="{{ book.id }}"
+            id="save-btn-{{ book.id }}"
+        >
+            💾 Save Book
+        </button>
+    </div>
+</div>

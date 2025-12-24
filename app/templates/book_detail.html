@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    {% if book %}
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Book Cover -->
+            <div class="md:col-span-1">
+                {% if book.cover_image_url %}
+                    <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" class="w-full rounded-lg shadow-md">
+                {% else %}
+                    <div class="bg-gray-200 rounded-lg flex items-center justify-center h-96">
+                        <span class="text-6xl">📚</span>
+                    </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div class="mt-4 space-y-2">
+                    <button onclick="toggleSaveBook({{ book.id }})" 
+                            id="save-btn-{{ book.id }}"
+                            class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                        💾 Save Book
+                    </button>
+                    
+                    <!-- Update Cover Button -->
+                    <button onclick="toggleCoverForm()" 
+                            class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                        🖼️ Update Cover Image
+                    </button>
+                </div>
+                
+                <!-- Cover Update Form (Hidden by default) -->
+                <div id="cover-update-form" class="mt-4 hidden">
+                    <form method="post" action="/api/books/{{ book.id }}/update-cover" class="space-y-2">
+                        <input type="url" 
+                               name="cover_image_url" 
+                               placeholder="Enter image URL..." 
+                               value="{{ book.cover_image_url or '' }}"
+                               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                               required>
+                        <div class="flex gap-2">
+                            <button type="submit" 
+                                    class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                                Save
+                            </button>
+                            <button type="button" 
+                                    onclick="toggleCoverForm()"
+                                    class="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Book Info -->
+            <div class="md:col-span-2">
+                <h1 class="text-3xl font-bold mb-2">{{ book.title }}</h1>
+                <p class="text-xl text-gray-600 mb-4">by {{ book.author }}</p>
+                
+                <!-- Rating -->
+                <div class="flex items-center mb-4">
+                    <span class="text-yellow-500 text-xl">
+                        {% if book.rating %}
+                            {% for i in range(book.rating|int) %}⭐{% endfor %}
+                        {% else %}
+                            No rating
+                        {% endif %}
+                    </span>
+                    <span class="ml-2 text-gray-600">({{ book.total_reviews }} reviews)</span>
+                </div>
+                
+                <!-- Book Details -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    {% if book.isbn %}
+                    <div>
+                        <span class="font-semibold">ISBN:</span> {{ book.isbn }}
+                    </div>
+                    {% endif %}
+                    {% if book.publication_year %}
+                    <div>
+                        <span class="font-semibold">Year:</span> {{ book.publication_year }}
+                    </div>
+                    {% endif %}
+                    {% if book.publisher %}
+                    <div>
+                        <span class="font-semibold">Publisher:</span> {{ book.publisher }}
+                    </div>
+                    {% endif %}
+                    {% if book.page_count %}
+                    <div>
+                        <span class="font-semibold">Pages:</span> {{ book.page_count }}
+                    </div>
+                    {% endif %}
+                    {% if book.language %}
+                    <div>
+                        <span class="font-semibold">Language:</span> {{ book.language }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Genres -->
+                {% if book.genres %}
+                <div class="mb-6">
+                    <span class="font-semibold">Genres:</span>
+                    {% for genre in book.genres %}
+                        <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mr-2">
+                            {{ genre.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Description -->
+                {% if book.description %}
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2">Description</h3>
+                    <p class="text-gray-700">{{ book.description }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Summary -->
+                {% if book.summary %}
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2">Summary</h3>
+                    <p class="text-gray-700">{{ book.summary }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back Button -->
+    <div class="mt-6">
+        <a href="/books" class="text-blue-600 hover:underline">← Back to Books</a>
+    </div>
+    
+    {% else %}
+    <div class="text-center py-8">
+        <h2 class="text-2xl text-gray-600">Book not found</h2>
+        <a href="/books" class="text-blue-600 hover:underline mt-4 inline-block">Back to Books</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleCoverForm() {
+    const form = document.getElementById('cover-update-form');
+    form.classList.toggle('hidden');
+}
+</script>
+{% endblock %}

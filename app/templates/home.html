@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Hero Section -->
+    <div class="text-center py-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to AI Book Library</h1>
+        <p class="text-xl text-gray-600">Discover your next favorite book with AI-powered recommendations</p>
+        
+        <!-- Quick Search -->
+        <div class="mt-6 max-w-2xl mx-auto">
+            <form action="/books" method="get" class="flex gap-2">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Search for books..." 
+                    class="flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                >
+                <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                    🔍 Search
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Featured Books Section -->
+    <section>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">⭐ Featured Books</h2>
+            <a href="/books" class="text-blue-600 hover:underline">View All →</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% if featured_books %}
+                {% for book in featured_books[:4] %}
+                    {% include "components/book_card.html" %}
+                {% endfor %}
+            {% else %}
+                <div class="col-span-4 text-center text-gray-500 py-8">
+                    No featured books yet. Add some books to get started!
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- Recently Added Section -->
+    <section>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">📚 Recently Added</h2>
+            <a href="/books?sort=newest" class="text-blue-600 hover:underline">View All →</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% if recent_books %}
+                {% for book in recent_books[:4] %}
+                    {% include "components/book_card.html" %}
+                {% endfor %}
+            {% else %}
+                <div class="col-span-4 text-center text-gray-500 py-8">
+                    No recent books. Be the first to add one!
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- Your Saved Books Section -->
+    <section>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">💾 Your Saved Books</h2>
+            <a href="/saved" class="text-blue-600 hover:underline">View All →</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% if saved_books %}
+                {% for book in saved_books[:4] %}
+                    {% include "components/book_card.html" %}
+                {% endfor %}
+            {% else %}
+                <div class="col-span-4 text-center text-gray-500 py-8">
+                    No saved books yet. Start building your reading list!
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+<!-- Include Chat Widget -->
+{% include "components/chat_widget.html" %}
+{% endblock %}

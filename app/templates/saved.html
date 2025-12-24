@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">💾 My Saved Books</h1>
+    
+    {% if saved_books %}
+        <p class="text-gray-600 mb-4">You have {{ saved_books|length }} saved books</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for book in saved_books %}
+                {% include "components/book_card.html" %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <p class="text-xl text-gray-600 mb-4">You haven't saved any books yet.</p>
+            <p class="text-gray-500 mb-6">Click the "Save Book" button on any book to add it here.</p>
+            <a href="/books" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                Browse Books
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+.DS_Store
+venv/
+.idea/
+.vscode/
+# Data volumes (Tránh commit DB lên git)
+postgres_data/
+qdrant_data/
+n8n_data/
+ollama_data/

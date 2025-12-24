@@ -1,0 +1,31 @@
+// Main JavaScript file
+console.log('AI Book Library loaded');
+
+// Toggle save book function
+function toggleSaveBook(bookId) {
+    const btn = document.getElementById(`save-btn-${bookId}`);
+    
+    // Call API to save/unsave book
+    fetch(`/api/save-book/${bookId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.saved) {
+            btn.textContent = '✅ Saved';
+            btn.classList.add('bg-green-100', 'text-green-600');
+            btn.classList.remove('bg-blue-100', 'text-blue-600');
+        } else {
+            btn.textContent = '💾 Save Book';
+            btn.classList.add('bg-blue-100', 'text-blue-600');
+            btn.classList.remove('bg-green-100', 'text-green-600');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving book. Please try again.');
+    });
+}

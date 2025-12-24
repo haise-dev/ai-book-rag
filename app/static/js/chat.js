@@ -1,0 +1,414 @@
+// AI Chat Widget JavaScript
+// Handles SSE connection and chat interactions
+
+class AIBookChat {
+    constructor() {
+        this.sessionId = this.getSessionId();
+        this.eventSource = null;
+        this.isConnected = false;
+        
+        this.initializeElements();
+        this.setupEventListeners();
+        
+        // Auto-connect when widget is opened
+        const widget = document.getElementById('chat-widget');
+        if (widget && !widget.classList.contains('hidden')) {
+            this.connectToSSE();
+        }
+    }
+
+    getSessionId() {
+        // Get or create session ID
+        let sessionId = localStorage.getItem('chat_session_id');
+        if (!sessionId) {
+            sessionId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chat_session_id', sessionId);
+        }
+        return sessionId;
+    }
+
+    initializeElements() {
+        this.chatWidget = document.getElementById('chat-widget');
+        this.chatMessages = document.getElementById('chat-messages');
+        this.chatInput = document.getElementById('chat-input');
+        this.sendButton = document.getElementById('send-button');
+        this.toggleButton = document.getElementById('chat-toggle');
+        this.clearButton = document.getElementById('clear-chat');
+        this.connectionStatus = document.getElementById('connection-status');
+        
+        // Also check for navbar AI Chat button
+        this.navbarChatButton = document.querySelector('a[href="#"][onclick*="chat"]');
+    }
+
+    setupEventListeners() {
+        // Toggle chat widget from floating button
+        if (this.toggleButton) {
+            this.toggleButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleChat();
+            });
+        }
+
+        // Handle navbar AI Chat button
+        if (this.navbarChatButton) {
+            this.navbarChatButton.onclick = (e) => {
+                e.preventDefault();
+                this.toggleChat();
+                return false;
+            };
+        }
+
+        // Send message
+        if (this.sendButton) {
+            this.sendButton.addEventListener('click', () => this.sendMessage());
+        }
+        
+        if (this.chatInput) {
+            this.chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+        }
+
+        // Clear chat
+        if (this.clearButton) {
+            this.clearButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.clearChat();
+            });
+        }
+    }
+
+    toggleChat() {
+        if (this.chatWidget) {
+            this.chatWidget.classList.toggle('hidden');
+            
+            // Connect to SSE when opening chat
+            if (!this.chatWidget.classList.contains('hidden') && !this.isConnected) {
+                this.connectToSSE();
+            }
+            
+            // Focus input when opening
+            if (!this.chatWidget.classList.contains('hidden') && this.chatInput) {
+                this.chatInput.focus();
+            }
+        }
+    }
+
+    connectToSSE() {
+        if (this.eventSource) {
+            this.eventSource.close();
+        }
+
+        console.log('Connecting to chat stream...');
+
+        // Connect to SSE endpoint
+        this.eventSource = new EventSource(`/api/chat/stream/${this.sessionId}`);
+
+        this.eventSource.onopen = () => {
+            this.isConnected = true;
+            this.updateConnectionStatus('connected');
+            console.log('Connected to chat stream');
+        };
+
+        this.eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                this.handleMessage(data);
+            } catch (e) {
+                console.error('Error parsing message:', e);
+            }
+        };
+
+        this.eventSource.onerror = (error) => {
+            console.error('SSE error:', error);
+            this.updateConnectionStatus('error');
+            this.isConnected = false;
+            
+            // Reconnect after 5 seconds
+            setTimeout(() => {
+                if (!this.isConnected && this.chatWidget && !this.chatWidget.classList.contains('hidden')) {
+                    this.connectToSSE();
+                }
+            }, 5000);
+        };
+    }
+
+    handleMessage(data) {
+        if (data.type === 'connected') {
+            console.log('Chat connected successfully');
+            return;
+        }
+
+        // Simple duplicate check - only by message ID
+        const messageId = data.id;
+        const existingMsg = document.querySelector(`[data-message-id="${messageId}"]`);
+        
+        if (existingMsg) {
+            // Update existing message if it's thinking status
+            if (data.status === 'thinking') {
+                return; // Skip thinking updates
+            }
+            
+            // Update content for status change
+            const contentEl = existingMsg.querySelector('.message-content');
+            if (contentEl && existingMsg.classList.contains('thinking')) {
+                contentEl.innerHTML = this.parseMarkdown(data.content);
+                existingMsg.classList.remove('thinking');
+            }
+            return;
+        }
+        
+        // Add new message
+        this.addMessageToChat(data);
+
+        // Handle actions if present
+        if (data.actions) {
+            this.handleActions(data.actions);
+        }
+    }
+
+    addMessageToChat(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${message.role} ${message.status === 'thinking' ? 'thinking' : ''} fade-in`;
+        messageDiv.setAttribute('data-message-id', message.id);
+
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = message.role === 'user' ? '👤' : '🤖';
+
+        const content = document.createElement('div');
+        content.className = 'message-content';
+        
+        if (message.status === 'thinking') {
+            content.innerHTML = '<span class="thinking-dots"></span>';
+        } else {
+            // Check if content is a string representation of an object/array
+            let messageText = message.content;
+            
+            // If content looks like stringified array/object, try to parse it
+            if (typeof messageText === 'string' && 
+                (messageText.startsWith('[{') || messageText.startsWith('{')) && 
+                (messageText.endsWith('}]') || messageText.endsWith('}'))) {
+                try {
+                    const parsed = JSON.parse(messageText);
+                    // Extract text from parsed structure
+                    if (Array.isArray(parsed) && parsed[0]?.output) {
+                        messageText = parsed[0].output;
+                    } else if (parsed.output) {
+                        messageText = parsed.output;
+                    }
+                } catch (e) {
+                    // If parse fails, use original
+                    console.log('Failed to parse message content:', e);
+                }
+            }
+            
+            // Parse markdown
+            content.innerHTML = this.parseMarkdown(messageText);
+        }
+
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(content);
+        
+        this.chatMessages.appendChild(messageDiv);
+        this.scrollToBottom();
+    }
+
+    parseMarkdown(text) {
+        // Enhanced markdown parsing
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/⚠️/g, '<span style="color: #ff9800;">⚠️</span>');
+    }
+
+    handleActions(actions) {
+        if (actions.type === 'book_results') {
+            // Add book cards to chat
+            const bookCardsDiv = document.createElement('div');
+            bookCardsDiv.className = 'book-results grid gap-3 mt-3';
+            
+            actions.books.forEach(book => {
+                const bookCard = document.createElement('div');
+                bookCard.className = 'mini-book-card bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow';
+                
+                const isSaved = window.savedBooks && window.savedBooks.has(book.id);
+                
+                bookCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-800">${book.title}</h4>
+                        <span class="text-xs text-gray-500">#${book.id}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">by ${book.author}</p>
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="window.location.href='/book/${book.id}'"
+                            class="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-sm py-2 px-3 rounded transition-colors"
+                        >
+                            📖 View Details
+                        </button>
+                        <button 
+                            onclick="toggleSaveBook(${book.id}, event)"
+                            data-book-id="${book.id}"
+                            class="flex-1 ${isSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white text-sm py-2 px-3 rounded transition-colors"
+                        >
+                            ${isSaved ? '✅ Saved' : '💾 Save'}
+                        </button>
+                    </div>
+                `;
+                bookCardsDiv.appendChild(bookCard);
+            });
+            
+            this.chatMessages.appendChild(bookCardsDiv);
+            this.scrollToBottom();
+        }
+    }
+
+    async sendMessage() {
+        const message = this.chatInput.value.trim();
+        if (!message) return;
+
+        // Clear input
+        this.chatInput.value = '';
+
+        // Add user message immediately
+        this.addMessageToChat({
+            id: 'user_' + Date.now(),
+            role: 'user',
+            content: message,
+            timestamp: new Date().toISOString()
+        });
+
+        try {
+            // Build URL with query parameters
+            const params = new URLSearchParams({
+                message: message,
+                session_id: this.sessionId
+            });
+
+            const response = await fetch(`/api/chat/send?${params}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Chat send error:', errorText);
+                throw new Error('Failed to send message');
+            }
+
+            const data = await response.json();
+            console.log('Message sent successfully:', data);
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+            
+            this.addMessageToChat({
+                id: 'error_' + Date.now(),
+                role: 'assistant',
+                content: '⚠️ Sorry, I encountered an error sending your message. Please try again.',
+                status: 'error'
+            });
+        }
+    }
+
+    async saveBook(bookId) {
+        try {
+            const response = await fetch(`/api/books/${bookId}/save`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                // Show success message
+                this.showNotification(`Book #${bookId} saved to your list!`, 'success');
+                
+                // Update button state
+                const saveBtn = document.querySelector(`button[onclick*="saveBook(${bookId})"]`);
+                if (saveBtn) {
+                    saveBtn.textContent = '✅ Saved';
+                    saveBtn.disabled = true;
+                }
+            }
+        } catch (error) {
+            console.error('Error saving book:', error);
+            this.showNotification('Failed to save book', 'error');
+        }
+    }
+
+    async clearChat() {
+        if (confirm('Are you sure you want to clear the chat history?')) {
+            try {
+                const response = await fetch(`/api/chat/clear/${this.sessionId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Clear all messages
+                    this.chatMessages.innerHTML = '';
+                    
+                    // Re-add welcome message
+                    this.addWelcomeMessage();
+                }
+            } catch (error) {
+                console.error('Error clearing chat:', error);
+                this.showNotification('Failed to clear chat', 'error');
+            }
+        }
+    }
+
+    addWelcomeMessage() {
+        this.addMessageToChat({
+            id: 'welcome',
+            role: 'assistant',
+            content: 'Hello! I\'m your AI Book Assistant. How can I help you find your next great read?',
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    scrollToBottom() {
+        if (this.chatMessages) {
+            // Smooth scroll to bottom
+            this.chatMessages.scrollTo({
+                top: this.chatMessages.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    updateConnectionStatus(status) {
+        if (this.connectionStatus) {
+            this.connectionStatus.className = `connection-status ${status}`;
+            this.connectionStatus.textContent = status === 'connected' ? '🟢' : '🔴';
+        }
+    }
+
+    showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type} show`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+}
+
+// Initialize chat when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.aiBookChat) {
+        console.log('🚀 Initializing AI Book Chat...');
+        window.aiBookChat = new AIBookChat();
+    }
+});

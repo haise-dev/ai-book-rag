@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">📚 Browse by Genres</h1>
+        <p class="text-gray-600">Select one or more genres to find books that match ALL selected categories</p>
+    </div>
+
+    <!-- Genre Selection -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Select Genres:</h2>
+        <form id="genre-form" method="get" action="/genres" class="space-y-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for genre in all_genres %}
+                <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                    <input 
+                        type="checkbox" 
+                        name="genre_{{ genre.id }}"
+                        value="{{ genre.id }}"
+                        {% if genre.id in selected_ids %}checked{% endif %}
+                        class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        onchange="updateGenreSelection()"
+                    >
+                    <span class="text-gray-700">{{ genre.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    🔍 Find Books
+                </button>
+                <a href="/genres" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">
+                    Clear All
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Selected Genres Display -->
+    {% if selected_genres %}
+    <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-2">Selected Genres:</h3>
+        <div class="flex flex-wrap gap-2">
+            {% for genre in selected_genres %}
+            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                {{ genre.name }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Results -->
+    <div>
+        {% if selected_genres %}
+            <h2 class="text-2xl font-bold mb-4">
+                Found {{ books|length }} book{% if books|length != 1 %}s{% endif %}
+            </h2>
+            
+            {% if books %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for book in books %}
+                    {% include "components/book_card.html" %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12 bg-gray-50 rounded-lg">
+                <p class="text-gray-600 text-lg">No books found with all selected genres.</p>
+                <p class="text-gray-500 mt-2">Try selecting fewer genres for more results.</p>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12 bg-gray-50 rounded-lg">
+                <p class="text-gray-600 text-lg">👆 Select one or more genres to start browsing</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function updateGenreSelection() {
+    const form = document.getElementById('genre-form');
+    const checkboxes = form.querySelectorAll('input[type="checkbox"]:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Update hidden field for selected genres
+    let hiddenInput = form.querySelector('input[name="selected"]');
+    if (!hiddenInput) {
+        hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'selected';
+        form.appendChild(hiddenInput);
+    }
+    hiddenInput.value = selectedIds.join(',');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', updateGenreSelection);
+</script>
+{% endblock %}

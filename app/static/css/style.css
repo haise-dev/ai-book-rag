@@ -1,0 +1,129 @@
+/* Enhanced Chat Animations */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-updated {
+    animation: pulse 0.3s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+/* Message Timestamp */
+.message-timestamp {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* Enhanced Book Cards in Chat */
+.mini-book-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0;
+    transition: all 0.2s ease;
+}
+
+.mini-book-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.book-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.book-id {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.book-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.btn-view, .btn-save {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-view {
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-save {
+    background: #28a745;
+    color: white;
+    border: none;
+}
+
+.btn-save:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Better connection status */
+.connection-status {
+    font-size: 0.875rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.connection-status.connected {
+    background: #d4edda;
+    color: #155724;
+}
+
+.connection-status.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Enhanced notification */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    z-index: 10000;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification.success {
+    background: #28a745;
+    color: white;
+}
+
+.notification.error {
+    background: #dc3545;
+    color: white;
+}
